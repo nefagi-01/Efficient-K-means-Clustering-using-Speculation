@@ -1,0 +1,20 @@
+In this section we should describe the execution times and parallelization design space.
+More specifically, using a selected implementation, show all the tradeoffs related to the design in C++ (maybe even compare to a python baseline).
+
+Some of the potential tradeoffs are:
+\begin{itemize}
+    \item 1 thread vs many threads
+    \item thread allocation between fast and slow
+    \item flexible/adaptive allocation (using threadpools)
+\end{itemize}
+
+This section serves to show individually how these steps behave, and how we may need to design the algorithm, based on lessons from the previous section. Basically, building blocks to the evaluation section, and initial numbers that show the performance of:
+
+\begin{itemize}
+    \item sampling using 1-X threads
+    \item regular k-means using 1-X threads
+    \item sampling/fast pass using 1-X threads
+    \item slow pass using 1-X threads
+\end{itemize}
+
+This gives a basis for making a decision about allocating resources, and a potential discussion (e.g. that one can issue an adaptive policy, to run as many fast steps, while slow is not done).

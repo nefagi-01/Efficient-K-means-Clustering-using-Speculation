@@ -1,0 +1,18 @@
+This section describes the algorithm from a higher level, and from the accuracy/convergence perspective. 
+
+Basically, mention very briefly, referring to the related work how do the following behave:
+\begin{itemize}
+    \item naive k-means
+    \item better initialization
+    \item approximate k-means
+\end{itemize}
+
+Then, you could say that we take the best of all the worlds using speculation, and do this adaptively at runtime.
+
+That is, instead of making an apriori initialization, you do this through sampling to converge faster. Yet, due to repair you obtain a correct, precise answer. This also avoids initialization time, and just processes samples rather than full data (could be costly, as the google paper with sampling proposed). 
+
+Then, you present the solution step by step, how you start from the naive kmeans, what are steps A and B, why do they have a dependency, and why resolving this dependency helps the convergence (in the next section there will be time for performance discussion, here at an abstract level describe the approach).
+
+Then, add a few graphs to indicate how long steps A and B usually take in the first, naive speculative case.
+
+Then, you can discuss pitfalls and how and why you improve sketching. Here you can use those convergence graphs, but just as a motivation, there will be an evaluation section for in-depth discussion.
