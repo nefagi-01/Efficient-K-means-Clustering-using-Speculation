@@ -1,8 +1,59 @@
+K-Means Clustering is an unsupervised machine learning algorithm used for clustering data points into a predefined number of clusters. It is one of the most commonly used clustering algorithms, given that it is relatively simple to implement, it scales to large data sets, and it guarantees convergence. In particular, this algorithm has a time and space complexity of $O(n\cdot d\cdot k)$ where $k$ is the number of clusters, $n$ is the number of data points, and $d$ is the number of features.
+\subsection{Steps of k-means and dependencies}
 
-Flow for the introduction:
+Different implementations of K-means exist, however, Lloyd's version is still widely used for clustering tasks in practical applications.
+
+In this approach, clustering works by iteratively assigning each data point to the closest centroid and then computing the mean of all points within each cluster. This process is repeated until the centroids no longer move, meaning that the clusters have converged. At this point, it is said to have found the clustering of data points into k clusters. The exact steps of the algorithm are shown in Algorithm \ref{alg:1}.
+
+\begin{algorithm}
+\caption{K-Means Clustering}
+\begin{algorithmic}[1]
+    \State Initialize k centroids randomly
+    \Repeat
+    \State Calculate the distance between each data point and the centroids
+    \label{alg:step:3}
+    \State Assign each data point to the nearest centroid
+    \label{alg:step:4}
+    \State Update the centroids by computing the mean of all points assigned to each cluster
+    \label{alg:step:5}
+    \Until The centroids no longer move or a maximum number of iterations is reached
+    \State Return the final clusters and centroids
+\end{algorithmic}
+\label{alg:1}
+\end{algorithm}
+
+In Algorithm \ref{alg:1}  we can distinguish two main steps: the assignment step, which includes \ref{alg:step:3} and \ref{alg:step:4}, and the update step, which includes \ref{alg:step:5}.
+We can see how there is a dependency between the assignment step and the update step in both directions:
 \begin{itemize}
-    \item Describe at a high level what is the k-means algorithm
-    \item Description of the steps of k-means and the dependencies between them
-    \item Why/how does sampling help improve performance and what can go wrong if you just run k-means with a sample (basically set the stage to say why repairing is necessary)
-    \item What do we propose (high-level description of the algorithm, how does it improve performance, how does it guarantee/help convergence)
+    \item In order to update the centroids, we need the assignments of all datapoints.
+    \item In order to update the assignments of all datapoints, we need the centroids.
 \end{itemize}
+The steps of k-means depend on each other in a cyclical manner: the assignment of data points depends on the current cluster centers, which are in turn updated based on the assignments, and so on.
+
+\label{section:dependencies}
+
+\subsection{Subsampling: trade-off between performance and accuracy}
+
+K-Means has a time and space complexity of $O(n\cdot d\cdot k)$, which leads to great time executions and an important memory footprint in the case of large datasets. 
+A possible approach to this problem can be working on random samples of the given dataset. This would reduce the factor $n$ and, as a consequence, it would improve performance by speeding up the computation time. Furthermore, it would use less memory. 
+
+However, this comes at a cost, as sampling can lead to a decrease in accuracy. This is due to the fact that a sample cannot represent correctly the entire dataset and as a consequence the final centroids that are found usually lead to a suboptimal clustering when applied to the entire dataset.
+
+We face therefore a trade-off when choosing the size of the sample since we have to decide between performance and accuracy. The more we want to improve the performances, the smaller has to be the size of the sample, which means sacrificing the accuracy of the results.
+\label{section:sampling}
+
+\subsection{K-Means Using Speculation: performances and accuracy}
+
+The purpose of this work is to introduce a new technique for executing K-Means efficiently without sacrificing accuracy. The technique, which we will refer to as K-Means Clustering Using Speculation, uses speculation in order to break the cyclic dependency we described in section \ref{section:dependencies}.
+
+In its simplest form, this approach requires two threads of execution. We will reserve one thread for slow execution and another for fast execution. We will group the K-Means steps into blocks, each containing an Assignment step and an Update step. The slow execution thread will use the entire dataset and process one block, computing the Assignment step then the Update step. The fast execution thread will use a subset of the dataset, reducing therefore the time execution of a single block, as we saw in section \ref{section:sampling}. This will allow the thread to process several chained blocks, executing several Assignment and Update steps one after the other.
+When the slow execution finishes, also the fast one is interrupted.
+Both the fast and slow execution propose the centroids they found, and the best ones are chosen by computing their inertia on the entire dataset. The centroids which lead to the minor inertia are selected.
+We repeat this procedure until convergence.
+
+This technique offers the benefit of a reduced time of execution and competitive quality of the final results.
+The fast execution performs several assignment and update steps, allowing it to approach the convergence, while the slow execution computes the result on the entire dataset. This means that the fast execution may suggest centroids that are closer to the final solution, reducing the total number of steps needed to converge and, consequently, the overall time of execution. 
+At the same time, the quality of the final solution is still comparable to the case when working with the entire dataset, thanks to the slow execution which always works on the entire dataset and can find the best position of the centroids in order to reduce the inertia to the minimum.
+
+
+
