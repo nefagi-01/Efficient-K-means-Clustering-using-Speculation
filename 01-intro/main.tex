@@ -1,4 +1,5 @@
-K-Means Clustering is an unsupervised machine learning algorithm used for clustering data points into a predefined number of clusters. It is one of the most commonly used clustering algorithms, given that it is relatively simple to implement, it scales to large data sets, and it guarantees convergence. In particular, this algorithm has a time and space complexity of $O(n\cdot d\cdot k)$ where $k$ is the number of clusters, $n$ is the number of data points, and $d$ is the number of features.
+K-Means Clustering is an unsupervised machine learning algorithm used for grouping data points into a predefined number of clusters. It is one of the most commonly used clustering algorithms, given that it is relatively simple to implement, it scales to large data sets, and it guarantees convergence. In particular, this algorithm has a time and space complexity of $O(n\cdot d\cdot k)$ where $k$ is the number of clusters, $n$ is the number of data points, and $d$ is the number of features.
+
 \subsection{Steps of k-means and dependencies}
 
 Different implementations of K-means exist, however, Lloyd's version is still widely used for clustering tasks in practical applications.
@@ -30,6 +31,7 @@ We can see how there is a dependency between the assignment step and the update 
 \end{itemize}
 The steps of k-means depend on each other in a cyclical manner: the assignment of data points depends on the current cluster centers, which are in turn updated based on the assignments, and so on.
 
+
 \label{section:dependencies}
 
 \subsection{Subsampling: trade-off between performance and accuracy}
@@ -46,10 +48,10 @@ We face therefore a trade-off when choosing the size of the sample since we have
 
 The purpose of this work is to introduce a new technique for executing K-Means efficiently without sacrificing accuracy. The technique, which we will refer to as K-Means Clustering Using Speculation, uses speculation in order to break the cyclic dependency we described in section \ref{section:dependencies}.
 
-In its simplest form, this approach requires two threads of execution. We will reserve one thread for slow execution and another for fast execution. We will group the K-Means steps into blocks, each containing an Assignment step and an Update step. The slow execution thread will use the entire dataset and process one block, computing the Assignment step then the Update step. The fast execution thread will use a subset of the dataset, reducing therefore the time execution of a single block, as we saw in section \ref{section:sampling}. This will allow the thread to process several chained blocks, executing several Assignment and Update steps one after the other.
-When the slow execution finishes, also the fast one is interrupted.
+In its simplest form, this approach requires two threads of execution. We will reserve one thread for slow execution and another for fast execution. We will group the K-Means steps into blocks, each containing an Assignment step and an Update step. At each iteration, the slow execution thread will use the entire dataset and process one block, computing the Assignment step then the Update step. The fast execution thread will use a subset of the dataset, reducing therefore the time execution of a single block, as we saw in section \ref{section:sampling}. This will allow the thread to process several chained blocks, executing several Assignment and Update steps one after the other.
+When the slow execution finishes processing its block, also the fast one is interrupted.
 Both the fast and slow execution propose the centroids they found, and the best ones are chosen by computing their inertia on the entire dataset. The centroids which lead to the minor inertia are selected.
-We repeat this procedure until convergence.
+We repeat this procedure, continuing from the centroids selected, until convergence.
 
 This technique offers the benefit of a reduced time of execution and competitive quality of the final results.
 The fast execution performs several assignment and update steps, allowing it to approach the convergence, while the slow execution computes the result on the entire dataset. This means that the fast execution may suggest centroids that are closer to the final solution, reducing the total number of steps needed to converge and, consequently, the overall time of execution. 

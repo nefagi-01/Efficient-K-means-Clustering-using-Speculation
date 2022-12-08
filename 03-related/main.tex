@@ -1,5 +1,54 @@
-We will organize related work in the following subsections:
+K-Means clustering is a widely used unsupervised machine learning algorithm for data partitioning and clustering. This section provides an overview of the basic K-Means algorithms, the existing initialization techniques, the approximations which can be done to improve performances and the parallelization methods. We discuss the advantages and disadvantages of various approaches and explain how they can be applied in various scenarios. Furthermore, we present a comparison between the currently used approaches and the one we propose based on Speculation. Finally, we also show how our proposed approach can outperform the existing ones in terms of both accuracy and speed.
+\subsection{K-Means++ initialization}
+\label{section:K-Means_pp}
+
+K-Means is sensible to initialization problems. It starts by randomly assigning a set of centroids, which can lead to suboptimal solutions if they are not well-chosen. To mitigate this, it is important to use an appropriate initialization strategy, such as k-means++, which elects initial cluster centroids using sampling based on an empirical probability distribution that reflects the points' contribution to the overall inertia. This offers a number of advantages over random initialization. It helps to avoid local minima, meaning that it can find the global optimum and produce better quality clusters compared to random initialization. Additionally, it may help to reduce the number of iterations needed to find the optimal solution, making it faster and more efficient than random initialization.
+In Algorithm \ref{alg:K-Means_pp_initialization} we describe the steps for the centroid initialization.
+\begin{algorithm}[H]
+  \caption{K-Means++ Initialization}
+  \label{alg:K-Means_pp_initialization}
+  \begin{algorithmic}[1]
+    \State Choose one center uniformly at random among the data points.
+    \For{each data point x not chosen yet}
+        \label{step:compute_Dx}
+        \State Compute $D(x)$, the distance between x and the nearest center that has already been chosen.
+    \EndFor
+    \State Choose one new data point at random as a new center, using a weighted probability distribution where a point x is chosen with probability proportional to $D(x)^2$.
+    \label{step:choose_centroid}
+    \Repeat
+        \State Steps \ref{step:compute_Dx} to \ref{step:choose_centroid}
+    \Until k centers have not been chosen
+    \State Return the initial centers have been chosen
+  \end{algorithmic}
+\end{algorithm}
+
+We can see how the initialization Algorithm \ref{alg:K-Means_pp_initialization} involves the computation of the distances between each datapoint and the nearest center. This is an expensive operation, which is repeated every time a new centroid is sampled. Therefore, all the aforementioned benefits come to an initial time-cost we need to pay before running the actual algorithm. This can be prohibitive in particular applications, especially in case of large datasets.
+
+\subsection{Approximations with Sampling. Mini-batch K-Means and online K-Means.}
+\label{section:approximation}
+Approximations with sampling are methods for increasing performances by using a subset of the data. In addition, these algorithms are useful when dealing with large datasets that would be too costly to process in one go. 
+Mini-batch K-Means and online K-Means are two such methods. 
 \begin{itemize}
-    \item k-means (basic algorithms and extensions, optimizations for better initialization, approximate algorithms, parallel algorithms)
-    \item speculative execution
+    \item Mini-batch K-Means is an iterative algorithm that uses a subset of the data to update the cluster centers. At each K-Means iteration a new mini-batch is sampled.
+    \item Online K-Means is a streaming algorithm that updates the cluster centers using one datapoint at the time.
 \end{itemize}
+Both of these methods are used to reduce the execution time and the amount of memory needed to run K-means, especially in case of big datasets. However, as we saw in section \ref{section:sampling}, this comes at a cost on the accuracy of the final centroids that are found. The fact we are not using the entire dataset in order to find the centroids leads to solutions with a higher inertia than what we could have obtained by using the entire dataset.
+
+\subsection{Parallelization}
+\label{section:parallelization}
+An alternative solution for addressing K-Means on large datasets is to use parallelization with a distributed framework such as Spark. This approach takes advantage of distributed computing to process large datasets quickly and efficiently. However, there are two limitations to this approach, as discussed in [paper speculation]. Firstly, Amdahl's law suggests that the benefits of additional resources may be limited, as the increase in resources often results in diminishing returns in performance. Secondly, the data parallelization cannot break the dependency between the two steps in K-means aforementioned in section \ref{section:dependencies}, meaning that one step must be executed at a time, leading to a possible underuse of resources.
+
+\subsection{Speculative Execution}
+
+The K-Means Clustering Using Speculation technique is proposed as a novel approach to improve the performance of clustering without sacrificing accuracy. In addition, this technique is shown to be able to escape local minima and converge to the global optimum without the need for an initialization such as K-Means++, which requires an initial time cost.
+
+The K-Means Clustering Using Speculation approach breaks the cyclic dependency highlighted in Section \ref{section:dependencies} by using two threads of execution. The slow thread processes one block at a time, with an Assignment step followed by an Update step, while the fast thread uses a subset of the dataset to reduce the time execution of a single block, and as a consequence, it is able to execute several blocks by the time the slow execution has finished.
+This technique offers the benefit of a reduced time of execution and a competitive quality of the final results, as the fast thread can suggest centroids that are closer to the final solution, allowing to skip some steps of the K-Means algorithm, and the slow thread always works on the entire dataset to find the best centroids and minimize the inertia.
+
+In particular, we have the quick execution attempting to speculate the future centroids the slow execution will observe, by delving further into the K-Means loop. However, the fast execution works on a sample of dataset, which can lead to centroids that are not optimal when applied to the entire dataset. This is the reason why, on the other part, the slow execution computes the exact result of one block of K-Means execution. This way we can then perform the correction step, by comparing the centroids proposed by both fast and slow execution. The comparison is done by computing the inertia of the centroids on the entire dataset, and the centroid with smaller inertia is selected.
+
+We are suggesting therefore an approach that addresses the trade-off noticed in the approximation methods in section \ref{section:approximation},  where we had to choose between accuracy and performances.
+
+K-Means may experience initialization issues when the centroids are randomly chosen, as detailed in Section \ref{section:K-Means_pp}. This can lead to an increase in the number of clustering iterations required to reach a point of convergence, as well as a longer overall runtime and a decrease in the algorithm's performance. Speculative Execution can address this issue, without relying on a single initialization such as K-Means++ which has an initial cost in terms of time. This method involves using the fast execution in the speculative framework to explore different solutions, by resampling the subset on which the fast execution will operate, as well as the centroids from which it will begin. The goal of this technique is to spread out the initialization cost of methods like K-Means++ over multiple steps of K-Means, which could be preferred in particular situations of limited memory or time constraints when working with large datasets.
+
+Finally, we can observe how the speculation approach might be an effective means of utilizing the available resources. As mentioned in Section \ref{section:parallelization}, Amdahl's law states that the benefits of extra resources may be restricted, as the increase in resources often yields diminishing returns. However, speculation can lead to a more effective use of resources, by assigning multiple threads the task of speculating on the future centroids, which may reduce drastically the total number of steps of K-Means, in case of correct prediction. Furthermore, this can be combined with data parallelism, by parallelizing slow and fast executions.
