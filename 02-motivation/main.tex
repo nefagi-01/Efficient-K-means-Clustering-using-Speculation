@@ -1,11 +1,11 @@
-The purpose of this section is to set exactly our goals:
-\begin{itemize}
-    \item performance
-    \item accuracy (convergence, avoid getting stack to local optima)
-\end{itemize}
-
-Explain why existing approaches do not achieve both the above points.
-
-Naive k-means is slow but does not guarantee convergence. Better initialization helps to achieve convergence, but it is hard to find good initialization. Approximate k-means can be very fast the smaller the sample but sacrifices correctness.
-
-We could use in this section some figure/example to explain the above points.
+The previous section has provided an overview of the K-Means clustering algorithm, its existing initialization techniques, approximations to improve performance, and parallelization methods. We discussed the pros and cons of various approaches and how they can be applied in different scenarios. In particular, we saw how K-means++ initialization leads to better results but requires an initial time cost, methods working on samples of the entire dataset improve performance but reduce the quality of the results, and parallelization improves performance but does not always scale as expected due to diminishing returns. We also presented a comparison between the currently used approaches and the one we propose based on Speculation, claiming that this approach can solve the trade-offs observed in the previous methods.
+We define now clearly the objectives we are trying to reach with K-Means Clustering Using Speculation, and how we are going to measure it.
+Firstly, our goals are:
+\begin{enumerate}
+    \item to reduce the number of steps needed to converge,
+    \item to reduce the overall time needed to converge,
+    \item to achieve a comparable quality of final results to the case in which we work only with the entire dataset,
+    \item and to have the capacity to converge to a global minimum without a particular initialization.
+\end{enumerate}
+To show these results, we will observe and compare the evolution of the clusters' inertia during the Basic K-Means algorithm and the one using Speculation. Additionally, we will compute an estimate of the optimal clustering and its respective inertia.
+This will be essential to understanding if our method is reducing the inertia faster than existing methods, and to verify where our method is converging with respect to the global minimum and, in particular, if it is able to reach it.
