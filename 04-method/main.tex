@@ -38,14 +38,17 @@ Finally, we compare the centroids proposed by both the executions, we compute th
 \end{algorithmic}
 \end{algorithm}
 
-The fast execution of the K-Means algorithm is used to speculate and predict future centroids that the slow execution may encounter. In case its prediction is correct, it will allow skipping several steps of the K-Means algorithm. This is possible since it works on a subset of the dataset, allowing it to execute faster and dive deeper into the algorithm, approaching more the convergence. However, as discussed in Section \ref{section:approximation}, this comes at a cost since. The fast execution is working on a subset of the dataset, therefore the final solution may not be as accurate. To avoid this, the slow execution is used to compute the result on the entire dataset, ensuring a more accurate result. Thus, the two executions have different purposes, with the fast execution being used to speculate and the slow execution being used to ensure accuracy.
+The fast execution of the K-Means algorithm is used to speculate and predict future centroids that the slow execution may encounter, by traversing a speculative path, where it predicts which are going to be the results of the future stages of the slow execution. In case its prediction is correct, it will allow skipping several steps of the K-Means algorithm, breaking this way the cyclic dependency. This is possible since it works on a subset of the dataset, allowing it to execute faster and dive deeper into the algorithm, approaching more the convergence. However, as discussed in Section \ref{section:approximation}, this comes at a cost since, the fast execution is working on a subset of the dataset, therefore the final solution may not be as accurate. To avoid this, the slow execution is used to compute the result on the entire dataset, ensuring an accurate final result. Thus, the two executions have different purposes, with the fast execution being used to speculate and the slow execution being used to ensure accuracy.
 
-In Figure \ref{fig:vanilla_speculation_comparison}, we can observe the comparison between two K-Means executions, both of which start from the same initial centroid, compute $k=8$ clusters, and run for a maximum of $50$ steps. A step consist of an execution of both Assignment and Update step on the entire dataset.
-The execution with Speculation is more efficient, as it reaches convergence after 6 steps, while the vanilla implementation takes 30 steps. Furthermore, the accuracy of the final result is the same for both executions. 
+In Figure \ref{fig:speculation_conceptual_design},we illustrate the proposed design. We indicate the Assignment step with $A$ and the Update step with $B$. The green shapes represent the steps actually executed, whereas the red ones indicate the steps we would save in case the speculation of the fast execution is correct. 
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\linewidth]{./plots/vanilla_speculation_comparison.png}
-\caption{\href{https://www.openml.org/d/23395}{OpenML Dataset 23395} The dataset used is an ARFF dataset called COMET\_MC\_SAMPLE, version 2, uploaded on April 22nd, 2016. It is publicly available and can be downloaded from the URL provided. It contains 6 features and 89640 instances, and can be found on OpenML with the ID 23395.}
-\label{fig:vanilla_speculation_comparison}
+\includegraphics[width=\linewidth]{./plots/speculative_KMeans_conceptual_design.png}
+\caption{Conceptual Design of Speculative K-Means}
+\label{fig:speculation_conceptual_design}
 \end{figure}
+
+
+\subsection{Escaping local minima}
+
