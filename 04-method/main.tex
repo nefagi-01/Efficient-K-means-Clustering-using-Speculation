@@ -21,6 +21,7 @@ Therefore, we decided to use a different approach in the implementation of Specu
 Finally, we compare the centroids proposed by both the executions, we compute the inertia they lead to on the entire dataset, and we pick the centroids with the smallest inertia.
 \begin{algorithm}
 \caption{K-Means Clustering using Speculation}
+\label{alg:kmeans_speculation}
 \begin{algorithmic}[1]
 \State Initialize centroids $c_i$ randomly
 \State Create two threads of execution: slow and fast
@@ -52,3 +53,11 @@ In Figure \ref{fig:speculation_conceptual_design},we illustrate the proposed des
 
 \subsection{Escaping local minima}
 
+As we saw in Section \ref{alg:K-Means_pp_initialization}, it is important to note how important the initialization is in K-Means, as it determines the quality of the final clustering. K-Means++ improves the final results, but has an initial-time cost. We propose an alternative approach that avoids this cost, while still leading to a global minimum.
+
+Figure \ref{fig:speculation_conceptual_design} and Algorithm \ref{alg:kmeans_speculation} show how the fast execution starts from the same centroids as the slow execution. However, by doing this, both executions are conditioned by the first initialization of the centroids. We suggest that the fast execution starts from a slightly different set of centroids than the slow one. This would allow us to take advantage of the fast execution to explore more of the solution space, searching for global minima.  At the same time, the repair step, where we compare the found centroids by computing their inertia, will guarantee convergence. This method is similar to having a vanilla K-Means executed many times from different initial centroids, and picking the best-obtained solution, but it is implemented only on the fast execution.
+
+Each time we start the speculation phase, we suggest sampling $k$ datapoints from the dataset as new initial centroids $c_i'$, and modifying the starting centroids of the fast execution by combining linearly the given initial centroids and the sampled ones
+\begin{equation}
+c_i = p \cdot c_i' + (1-p) \cdot c_i
+\end{equation} The value $p$ determines how intensely we want to perturb the initial centroids: the closer it is to $1$ the more random the centroids are, and the more we explore the solution space. This parameter expresses the degree of exploration we want from the fast execution. It can be set statically before the K-Means execution to an optimal value which may vary from dataset to dataset, or it can be adapted at run time, by adapting the randomness based on the quality of solutions we are finding stage after stage.
