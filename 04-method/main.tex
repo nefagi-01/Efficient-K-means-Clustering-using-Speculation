@@ -61,3 +61,22 @@ Each time we start the speculation phase, we suggest sampling $k$ datapoints fro
 \begin{equation}
 c_i = p \cdot c_i' + (1-p) \cdot c_i
 \end{equation} The value $p$ determines how intensely we want to perturb the initial centroids: the closer it is to $1$ the more random the centroids are, and the more we explore the solution space. This parameter expresses the degree of exploration we want from the fast execution. It can be set statically before the K-Means execution to an optimal value which may vary from dataset to dataset, or it can be adapted at run time, by adapting the randomness based on the quality of solutions we are finding stage after stage.
+\subsection{Speculation in the final stages of K-Means}
+As we are approaching the convergence, the accuracy and effectiveness of the speculation done by the fast execution decreases.
+This is due to the fact that the last steps of K-Means need the entire datasets in order to compute the exact position of the centroids, and we are not able to do this by using a sample of it.
+This leads us to the question of what to do with the fast execution, and if we can improve its prediction even during the last steps before convergence.
+We propose several possible approaches.
+
+First, we propose keeping track of the previous predicted centroids by the fast execution. Every time a fast execution starts we sample a different subset of dataset it will work on.
+Each subset will lead to a different centroids prediction, therefore we decide to keep memory of them using a tracing method, which consist in updating the newly discovered $c_{slow}$ centroids with the $c_{slow}^{past}$ past centroids in the following way:
+\begin{equation}
+c_{slow} = q \cdot c_{slow} + (1-q) \cdot c_{slow}^{past}
+\end{equation}
+Again, we can see how $q$ plays the role of a hyperparameter which determines how much we should keep track of the past speculated centroids.
+This type of tracing leads to an exponential decay of the memory of the past centroids.
+The reason why this method should help the prediction of the fast execution in the late stages of K-Means, is because it tries to combine the contribution of different speculation. If the problem resides in the fact that a sample of the dataset is not able to represent the entire dataset in the computation of the centroids, then by combining the contribution of different samples we should mitigate this limitation.
+Next approaches:
+\begin{enumerate}
+    \item Increase the subsample size while converging. This reduces the number of stages of the fast execution, which howver wouldn't be necessary since we are near to the convergence, then not many stages are left. At the same time we increase the accuracy of the prediction.
+    \item Switch to data parallelism
+\end{enumerate}
