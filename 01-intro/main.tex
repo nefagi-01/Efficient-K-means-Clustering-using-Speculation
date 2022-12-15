@@ -46,7 +46,7 @@ We face therefore a trade-off when choosing the size of the sample since we have
 
 \subsection{K-Means Using Speculation: performances and accuracy}
 
-The purpose of this work is to introduce a new technique for executing K-Means efficiently without sacrificing accuracy. We will refer to it as K-Means Clustering Using Speculation, since it uses speculation in order to break the cyclic dependency we described in section \ref{section:dependencies}. 
+The purpose of this work is to introduce a new technique for executing K-Means efficiently without sacrificing accuracy. We will refer to it as K-Means Clustering Using Speculation, since it uses speculation in order to break the cyclic dependency we described in section \ref{section:dependencies}, allowing us to avoid to entirely traverse the chain of Assignment and Update steps in order to reach the final solution, by skipping some intermediate steps using the prediction of their result.  
 
 In its simplest form, this approach requires two threads of execution. We will reserve one thread for slow execution and another for fast execution. We will group the K-Means steps into stages, each containing an Assignment step and an Update step. At each iteration, the slow execution thread will use the entire dataset and process one stage, computing the Assignment step then the Update step. The fast execution thread will use a subset of the dataset, reducing therefore the time execution of a single stage, as we saw in section \ref{section:sampling}. This will allow the thread to process several chained stages, executing several Assignment and Update steps one after the other.
 When the slow execution finishes processing its stage, also the fast one is interrupted.
