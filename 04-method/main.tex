@@ -1,18 +1,51 @@
-This section describes the algorithm from a higher level, and from the accuracy/convergence perspective. 
+Section \ref{section:related_work} has explored the K-Means clustering algorithm, its initialization techniques, approximations to enhance performance, and parallelization methods. We have examined the advantages and disadvantages of each approach and how they can be applied in various contexts. In particular, we have seen that K-means++ initialization produces better results, but requires an initial time cost, methods operating on samples of the entire dataset improve performance but decrease the quality of the results, and parallelization improves performance but does not always scale as expected due to diminishing returns. Our goal is to solve these trade-offs, and to have a method able to increase performance without sacrificing the quality of the results, and without paying an initial time-cost.  In order to accomplish this, we suggest breaking the cyclic dependency existing in K-Means, highlighted in section 2, by using Speculation. 
 
-Basically, mention very briefly, referring to the related work how do the following behave:
-\begin{itemize}
-    \item naive k-means
-    \item better initialization
-    \item approximate k-means
-\end{itemize}
+\subsection{Breaking K-Means dependencies}
 
-Then, you could say that we take the best of all the worlds using speculation, and do this adaptively at runtime.
+We saw how Algorithm \ref{alg:1} consists of two main steps: the assignment step and the update step. The assignment step includes \ref{alg:step:3} and \ref{alg:step:4}, while the update step includes \ref{alg:step:5}. The two steps are dependent on each other, as the assignment of data points depends on the current cluster centers, which are in turn updated based on the assignments. This creates a cyclical pattern in the k-means algorithm.
 
-That is, instead of making an apriori initialization, you do this through sampling to converge faster. Yet, due to repair you obtain a correct, precise answer. This also avoids initialization time, and just processes samples rather than full data (could be costly, as the google paper with sampling proposed). 
+We can group the K-Means steps into stages, each containing an Assignment step and
+an Update step. Many of these stages are repeated in the K-Means algorithm until convergence.
+A first way of breaking the highlighted dependencies would be to separate in each stage the Update and Assignment into two different processes. This would allow them to run in parallel, thus reducing the overall time of execution of a stage. This could be done by speculating the result of the Assignment (or the Update) allowing the consequent Update (or the Assignment) to start running concurrently. Finally, we could perform a repair step once the correct result of the Assignment (or the Update) is available. Repeating this process until convergence would result in a faster K-Means algorithm.
 
-Then, you present the solution step by step, how you start from the naive kmeans, what are steps A and B, why do they have a dependency, and why resolving this dependency helps the convergence (in the next section there will be time for performance discussion, here at an abstract level describe the approach).
+However, after a study of the time of executions, we can see how the Assignment step takes more time than the Update step. In particular, the ratio between the time of an Assignment step and the time of the Update step increases with $k$, as shown in Figure \ref{fig:ratio_k}. As consequence, the parallelization of Assignment and Update in each stage results inefficient, since the gain of the concurrent execution is irrelevant for $t_{Assignment} \gg t_{Update}$.
 
-Then, add a few graphs to indicate how long steps A and B usually take in the first, naive speculative case.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{./plots/ratio_k.png}
+\caption{Evolution of ratio between time execution of Assignment and Update}
+\label{fig:ratio_k}
+\end{figure}
 
-Then, you can discuss pitfalls and how and why you improve sketching. Here you can use those convergence graphs, but just as a motivation, there will be an evaluation section for in-depth discussion.
+Therefore, we decided to use a different approach in the implementation of Speculation. Instead of running Assignment and Update in parallel for each stage, we run two executions of K-Means concurrently. Both executions start with the same given centroids, but there are two distinct executions: the slow execution, which processes one stage consisting of one Assignment step and one Update step using the full dataset, and the fast execution, which runs on a sample of the dataset and is able to process multiple stages in the same amount of time as the slow execution. As soon as the slow execution finishes, the fast execution is interrupted, to guarantee that they both to take the same amount of time.
+Finally, we compare the centroids proposed by both the executions, we compute the inertia they lead to on the entire dataset, and we pick the centroids with the smallest inertia.
+\begin{algorithm}
+\caption{K-Means Clustering using Speculation}
+\begin{algorithmic}[1]
+\State Initialize centroids $c_i$ randomly
+\State Create two threads of execution: slow and fast
+\label{state:create_threads}
+\State Run 1 Assignment step and 1 Update step on the slow execution starting from $c_i$
+\State Run as many as possible steps on a sample of the dataset on the fast execution starting from $c_i$
+\State When slow execution finishes, stop fast execution. Get the proposed centroids $c_{slow}$, $c_{fast}$
+\State Compute the inertia $I_X(c_{slow})$, $I_X(c_{fast})$ on the entire dataset $X$
+\State $c_i = argmin_c(I_X(c_{slow}), I_X(c_{fast}))$ select centroids minimizing the inertia.
+\label{state:select_centroids}
+\While{not (centroids no longer move | a maximum number of iterations is reached)}
+    \State repeat \ref{state:create_threads} to \ref{state:select_centroids}
+\EndWhile
+\State Return the final clusters and centroids
+\end{algorithmic}
+\end{algorithm}
+
+The fast execution of the K-Means algorithm is used to speculate and predict future centroids that the slow execution may encounter. In case its prediction is correct, it will allow skipping several steps of the K-Means algorithm. This is possible since it works on a subset of the dataset, allowing it to execute faster and dive deeper into the algorithm, approaching more the convergence. However, as discussed in Section \ref{section:approximation}, this comes at a cost since. The fast execution is working on a subset of the dataset, therefore the final solution may not be as accurate. To avoid this, the slow execution is used to compute the result on the entire dataset, ensuring a more accurate result. Thus, the two executions have different purposes, with the fast execution being used to speculate and the slow execution being used to ensure accuracy.
+
+In Figure \ref{fig:vanilla_speculation_comparison}, we can observe the comparison between two K-Means executions, both of which start from the same initial centroid, compute $k=8$ clusters, and run for a maximum of $50$ steps. A step consist of an execution of both Assignment and Update step on the entire dataset.
+The execution with Speculation is more efficient, as it reaches convergence after 6 steps, while the vanilla implementation takes 30 steps. Furthermore, the accuracy of the final result is the same for both executions. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{./plots/vanilla_speculation_comparison.png}
+\caption{\href{https://www.openml.org/d/23395}{OpenML Dataset 23395} The dataset used is an ARFF dataset called COMET\_MC\_SAMPLE, version 2, uploaded on April 22nd, 2016. It is publicly available and can be downloaded from the URL provided. It contains 6 features and 89640 instances, and can be found on OpenML with the ID 23395.}
+\label{fig:vanilla_speculation_comparison}
+\end{figure}

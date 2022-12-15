@@ -41,20 +41,20 @@ A possible approach to this problem can be working on random samples of the give
 
 However, this comes at a cost, as sampling can lead to a decrease in accuracy. This is due to the fact that a sample cannot represent correctly the entire dataset and as a consequence the final centroids that are found usually lead to a suboptimal clustering when applied to the entire dataset.
 
-We face therefore a trade-off when choosing the size of the sample since we have to decide between performance and accuracy. The more we want to improve the performances, the smaller has to be the size of the sample, which means sacrificing the accuracy of the results.
+We face therefore a trade-off when choosing the size of the sample since we have to decide between performance and accuracy. The more we want to improve performance, the smaller the size of the sample has to be acrificing the accuracy of the results.
 \label{section:sampling}
 
 \subsection{K-Means Using Speculation: performances and accuracy}
 
 The purpose of this work is to introduce a new technique for executing K-Means efficiently without sacrificing accuracy. The technique, which we will refer to as K-Means Clustering Using Speculation, uses speculation in order to break the cyclic dependency we described in section \ref{section:dependencies}.
 
-In its simplest form, this approach requires two threads of execution. We will reserve one thread for slow execution and another for fast execution. We will group the K-Means steps into blocks, each containing an Assignment step and an Update step. At each iteration, the slow execution thread will use the entire dataset and process one block, computing the Assignment step then the Update step. The fast execution thread will use a subset of the dataset, reducing therefore the time execution of a single block, as we saw in section \ref{section:sampling}. This will allow the thread to process several chained blocks, executing several Assignment and Update steps one after the other.
-When the slow execution finishes processing its block, also the fast one is interrupted.
+In its simplest form, this approach requires two threads of execution. We will reserve one thread for slow execution and another for fast execution. We will group the K-Means steps into stages, each containing an Assignment step and an Update step. At each iteration, the slow execution thread will use the entire dataset and process one stage, computing the Assignment step then the Update step. The fast execution thread will use a subset of the dataset, reducing therefore the time execution of a single stage, as we saw in section \ref{section:sampling}. This will allow the thread to process several chained stages, executing several Assignment and Update steps one after the other.
+When the slow execution finishes processing its stage, also the fast one is interrupted.
 Both the fast and slow execution propose the centroids they found, and the best ones are chosen by computing their inertia on the entire dataset. The centroids which lead to the minor inertia are selected.
 We repeat this procedure, continuing from the centroids selected, until convergence.
 
 This technique offers the benefit of a reduced time of execution and competitive quality of the final results.
-The fast execution performs several assignment and update steps, allowing it to approach the convergence, while the slow execution computes the result on the entire dataset. This means that the fast execution may suggest centroids that are closer to the final solution, reducing the total number of steps needed to converge and, consequently, the overall time of execution. 
+The fast execution performs several assignment and update steps, allowing it to converge faster, while the slow execution computes the result on the entire dataset. This means that the fast execution may suggest centroids that are closer to the final solution, reducing the total number of steps needed to converge and, consequently, the overall time of execution. 
 At the same time, the quality of the final solution is still comparable to the case when working with the entire dataset, thanks to the slow execution which always works on the entire dataset and can find the best position of the centroids in order to reduce the inertia to the minimum.
 
 
