@@ -1,0 +1,8 @@
+@inproceedings{Sioulas:282304,
+      title = {Accelerating Complex Analytics using Speculation},
+      author = {Sioulas, Panagiotis and Sanca, Viktor and Mytilinis,  Ioannis and Ailamaki, Anastasia},
+      pages = {9},
+      year = {2021},
+      abstract = {Analytical applications, such as exploratory data analysis  and decision support, process complex workloads that  include sequences of inter-dependent queries. While modern  OLAP systems exploit data parallelism, dependencies force  execution ordering constraints that severely limit task  parallelism. The serialization of tasks leads to long query  response times and under-utilization of resources. We  propose a new query processing paradigm that accelerates  inter-dependent queries using speculation. As when used in  OLTP or in computer micro-architecture, speculative  execution helps increase parallelism and improves  scheduling efficiency. Nevertheless, analytics present  unique challenges in making the right speculative execution  decisions, in validating predictions and in repairing  results. We enable fast and accurate predictions through  approximate query processing (AQP), and efficiently  validate speculations through a new streaming join  operator. In case of mispredictions we do not discard  progress, but apply corrective actions to incrementally  repair the result. Our experiments over the TPC-DS  benchmark show that, even though speculation adds work, it  improves task parallelism, queries run faster, and more  importantly, the speedup is increased as a function of  query complexity.},
+      url = {http://infoscience.epfl.ch/record/282304},
+}
