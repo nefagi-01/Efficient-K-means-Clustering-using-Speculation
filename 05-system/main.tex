@@ -1,20 +1,4 @@
-In this section we should describe the execution times and parallelization design space.
-More specifically, using a selected implementation, show all the tradeoffs related to the design in C++ (maybe even compare to a python baseline).
+In the simplest implementation of Speculative K-Means, there are two threads: the fast execution thread ($t_f$) and the slow execution thread ($t_s$). The $t_s$ thread acts as the main thread and is responsible for initializing the K-Means algorithm, sampling the initial centroids and comparing the centroids.
+At each stage, $t_s$ communicates the centroids from which to start to $t_f$. At this point, they begin working in parallel, with $t_s$ executing one Assignment and one Update step and $t_f$ executing many. Once $t_s$ finishes, it sends a signal to $t_f$ to stop its execution. Both $t_f$ and $t_s$ then start computing the inertia of their own centroids in parallel. Finally, $t_f$ communicates its centroids and the respective inertia to $t_s$, and $t_s$ compares the results and chooses the best ones. $t_s$ then communicates the chosen centroids to $t_f$, and the process is repeated.
 
-Some of the potential tradeoffs are:
-\begin{itemize}
-    \item 1 thread vs many threads
-    \item thread allocation between fast and slow
-    \item flexible/adaptive allocation (using threadpools)
-\end{itemize}
-
-This section serves to show individually how these steps behave, and how we may need to design the algorithm, based on lessons from the previous section. Basically, building blocks to the evaluation section, and initial numbers that show the performance of:
-
-\begin{itemize}
-    \item sampling using 1-X threads
-    \item regular k-means using 1-X threads
-    \item sampling/fast pass using 1-X threads
-    \item slow pass using 1-X threads
-\end{itemize}
-
-This gives a basis for making a decision about allocating resources, and a potential discussion (e.g. that one can issue an adaptive policy, to run as many fast steps, while slow is not done).
+If we have access to a large number of resources, there are two possible approaches we can take: we can either keep the existing architecture and add parallelism to both the fast and slow execution to speed up their execution times, or we can add more fast execution threads. The first approach involves combining parallelism and speculation in order to more quickly process each stage in both the slow and fast execution. The second approach aims to improve the predictive power of the fast execution by adding more threads. Each of these threads would start from the same centroids, and they would work on a different subset of the data, resulting in different speculated centroids. We can either combine these centroids into a single proposal or present them separately and choose the best one. The first approach is preferable because it addresses the issue of sampling accuracy, which can be compromised when working with smaller datasets. However, using more threads in the fast execution may be more beneficial if we are also doing centroids resampling. In this case, it would be better to choose the best proposal rather than averaging them, as each proposal represents an opportunity to approach the global minimum. Finally, we can also consider a combination of all these techniques if we have numerous resources, including parallelization in the slow execution and parallelization in different fast executions.
