@@ -1,7 +1,7 @@
 Section \ref{section:related_work} has explored the K-Means clustering algorithm, its initialization techniques, approximations to enhance performance, and parallelization methods. We have examined the advantages and disadvantages of each approach and how they can be applied in various contexts. In particular, we have seen that K-means++ initialization produces better results, but requires an initial time cost, methods operating on samples of the entire dataset improve performance but decrease the quality of the results, and parallelization improves performance but does not always scale as expected due to diminishing returns. Our goal is to solve these trade-offs, and to have a method able to increase performance without sacrificing the quality of the results, and without paying an initial time-cost.  In order to accomplish this, we suggest breaking the cyclic dependency existing in K-Means, highlighted in section 2, by using Speculation. 
 
 \subsection{Breaking K-Means dependencies}
-
+\label{section:breaking_dependencies}
 We saw how Algorithm \ref{alg:1} consists of two main steps: the assignment step and the update step. The assignment step includes \ref{alg:step:3} and \ref{alg:step:4}, while the update step includes \ref{alg:step:5}. The two steps are dependent on each other, as the assignment of data points depends on the current cluster centers, which are in turn updated based on the assignments. This creates a cyclical pattern in the K-Means algorithm.
 
 We can group the K-Means steps into stages, each containing an Assignment step and
