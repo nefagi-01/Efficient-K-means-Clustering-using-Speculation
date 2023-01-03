@@ -49,3 +49,17 @@ These measurements suggest that Speculative K-Means, with centroid resampling, i
 \caption{The figure shows the ratio between the inertia of the centroids found by Vanilla, Speculative K-Means and K-Means++ to the optimal inertia. Speculative K-Means used a $subsample\_size=0.01$ and centroids resampling \ref{section:escaping_local_minima} with $p=0.5$}
 \label{fig:histogram_escape_local_minima}
 \end{figure}
+
+\subsection{Overall time execution}
+
+Previously, we demonstrated that the Speculation technique can significantly reduce the number of stages required for convergence in K-Means clustering. However, there are some time offsets to consider due to the repair and speculation processes, including the sampling of a subset of points for the fast execution and the repair step, which is the most time-consuming due to the computation of inertia of centroids from the fast and slow execution threads. This computation is similar in complexity to the Assignment step, which is the most time-consuming step in K-Means, as shown in Figure \ref{fig:ratio_k}.
+In a simple implementation, there would be 1 Assignment step for the slow execution and 2 Inertia steps for the repair, totalling 3 steps with complexity comparable to the Assignment. This can be reduced to 2 steps by using the results from the computation of inertia in one stage to compute the Assignment step in the next stage.
+As the Assignment step is the most time-consuming, each stage in Speculative K-Means requires approximately double the time of a stage in Vanilla K-Means at most. While halving the total number of stages can compensate for the increased time per stage, the overall time of execution would still be the same. Improving the computation of inertia through better parallelization or alternative approaches such as avoiding explicit computation of inertia could further improve the performance of Speculative K-Means. These possibilities could be explored in future work.
+In Figure \ref{fig:histogram_time_execution}, we show the distribution of the ratios of number of stages and total time of execution between the execution of Speculative and Vanilla K-Means. Despite the drastic reduction in the number of stages, the total time of execution is not decreased the same way. A solution to the previously mentioned problem could potentially reduce the total time of execution to be more comparable to the reduced number of stages.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{./plots/histogram_time_execution.png}
+\caption{The figure shows the ratio between the \#stages and the total time of execution for convergence of Vanilla and Speculative K-Means. Speculative K-Means used a $subsample\_size=0.01$ and tracing with $q = 0.5$}
+\label{fig:histogram_time_execution}
+\end{figure}
