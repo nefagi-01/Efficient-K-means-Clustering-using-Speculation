@@ -1,10 +1,10 @@
-K-Means Clustering is an unsupervised machine learning algorithm used for grouping data points into a predefined number of clusters. It is one of the most commonly used clustering algorithms, given that it is relatively simple to implement, it scales to large data sets, and it guarantees convergence. In particular, this algorithm has a time and space complexity of $O(n\cdot d\cdot k)$ where $n$ is the number of data points, $d$ is the number of features, and  $k$ is the number of clusters,
+K-Means Clustering is an unsupervised machine learning algorithm used for grouping data points into a predefined number of clusters. It is one of the most commonly used clustering algorithms, given that it is relatively simple to implement, it scales to large data sets, and it guarantees convergence.
 
 \subsection{Steps of K-Means and dependencies}
 
 Different implementations of K-Means exist, however, Lloyd's version is still widely used for clustering tasks in practical applications.
 
-In this approach, clustering works by iteratively assigning each data point to the closest centroid and then updating each centroid with the mean of all points in the respective cluster. This process is repeated until no points change their assignments anymore. At this point, it is said to have found the clustering of data points into k clusters. The exact steps of the algorithm are shown in Algorithm \ref{alg:1}.
+In this approach, clustering works by iteratively assigning each data point to the closest centroid and then updating each centroid with the mean of all points in the respective cluster. This process is repeated until no points change their assignments anymore. The exact steps of the algorithm are shown in Algorithm \ref{alg:1}.
 
 \begin{algorithm}
 \caption{K-Means Clustering}
@@ -23,7 +23,7 @@ In this approach, clustering works by iteratively assigning each data point to t
 \label{alg:1}
 \end{algorithm}
 
-In Algorithm \ref{alg:1}  we can distinguish two main steps: the assignment step, which includes \ref{alg:step:3} and \ref{alg:step:4}, and the update step, which includes \ref{alg:step:5}.
+We can distinguish two main steps: the assignment step, which includes \ref{alg:step:3} and \ref{alg:step:4}, and the update step, which includes \ref{alg:step:5}.
 We can see how there is a dependency between the assignment step and the update step in both directions:
 \begin{itemize}
     \item In order to update the centroids, we need the assignments of all datapoints.
@@ -36,7 +36,7 @@ The steps of K-Means depend on each other in a cyclical manner: the assignment o
 
 \subsection{Subsampling: trade-off between performance and accuracy}
 
-K-Means has an overall time and space complexity of $O(n\cdot d\cdot k)$, which leads to great time executions and an important memory footprint in the case of large datasets. 
+K-Means has an overall time complexity of $O(n\cdot d\cdot k)$, and space complexity of $O(n\cdot(k+d))$ where $n$ is the number of data points, $d$ is the number of features, and  $k$ is the number of clusters. This leads to great time executions and an important memory footprint in the case of large datasets. 
 A possible approach to this problem can be working on random samples of the given dataset. This would reduce the factor $n$ and, as a consequence, it would improve performance by speeding up the computation time. Furthermore, it would use less memory. 
 
 However, this comes at a cost, as sampling can lead to a decrease in accuracy. This is due to the fact that a sample cannot represent correctly the entire dataset and as a consequence the final centroids that are found usually lead to a suboptimal clustering when applied to the entire dataset.

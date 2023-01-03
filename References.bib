@@ -6,3 +6,48 @@
       abstract = {Analytical applications, such as exploratory data analysis  and decision support, process complex workloads that  include sequences of inter-dependent queries. While modern  OLAP systems exploit data parallelism, dependencies force  execution ordering constraints that severely limit task  parallelism. The serialization of tasks leads to long query  response times and under-utilization of resources. We  propose a new query processing paradigm that accelerates  inter-dependent queries using speculation. As when used in  OLTP or in computer micro-architecture, speculative  execution helps increase parallelism and improves  scheduling efficiency. Nevertheless, analytics present  unique challenges in making the right speculative execution  decisions, in validating predictions and in repairing  results. We enable fast and accurate predictions through  approximate query processing (AQP), and efficiently  validate speculations through a new streaming join  operator. In case of mispredictions we do not discard  progress, but apply corrective actions to incrementally  repair the result. Our experiments over the TPC-DS  benchmark show that, even though speculation adds work, it  improves task parallelism, queries run faster, and more  importantly, the speedup is increased as a function of  query complexity.},
       url = {http://infoscience.epfl.ch/record/282304},
 }
+
+@inproceedings{Vassilvitskii,
+author = {Arthur, David and Vassilvitskii, Sergei},
+year = {2007},
+month = {01},
+pages = {1027-1035},
+title = {K-Means++: The Advantages of Careful Seeding},
+volume = {8},
+journal = {Proc. of the Annu. ACM-SIAM Symp. on Discrete Algorithms},
+doi = {10.1145/1283383.1283494}
+}
+
+@inproceedings{10.1145/1772690.1772862,
+author = {Sculley, D.},
+title = {Web-Scale k-Means Clustering},
+year = {2010},
+isbn = {9781605587998},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1772690.1772862},
+doi = {10.1145/1772690.1772862},
+abstract = {We present two modifications to the popular k-means clustering algorithm to address the extreme requirements for latency, scalability, and sparsity encountered in user-facing web applications. First, we propose the use of mini-batch optimization for k-means clustering. This reduces computation cost by orders of magnitude compared to the classic batch algorithm while yielding significantly better solutions than online stochastic gradient descent. Second, we achieve sparsity with projected gradient descent, and give a fast ε-accurate projection onto the L1-ball. Source code is freely available: http://code.google.com/p/sofia-ml},
+booktitle = {Proceedings of the 19th International Conference on World Wide Web},
+pages = {1177–1178},
+numpages = {2},
+keywords = {scalability, unsupervised clustering, sparse solutions},
+location = {Raleigh, North Carolina, USA},
+series = {WWW '10}
+}
+
+
+@inproceedings{NIPS1994_a1140a3d,
+ author = {Bottou, L\'{e}on and Bengio, Yoshua},
+ booktitle = {Advances in Neural Information Processing Systems},
+ editor = {G. Tesauro and D. Touretzky and T. Leen},
+ pages = {},
+ publisher = {MIT Press},
+ title = {Convergence Properties of the K-Means Algorithms},
+ url = {https://proceedings.neurips.cc/paper/1994/file/a1140a3d0df1c81e24ae954d935e8926-Paper.pdf},
+ volume = {7},
+ year = {1994}
+}
+
+
+@INPROCEEDINGS{7815182,  author={Wang, Bowen and Yin, Jun and Hua, Qi and Wu, Zhiang and Cao, Jie},  booktitle={2016 International Conference on Advanced Cloud and Big Data (CBD)},   title={Parallelizing K-Means-Based Clustering on Spark},   year={2016},  volume={},  number={},  pages={31-36},  doi={10.1109/CBD.2016.016}}
