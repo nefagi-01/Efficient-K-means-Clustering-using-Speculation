@@ -84,6 +84,7 @@ In Figure \ref{fig:vanilla_speculation_comparison_resampling} we can see how usi
 
 
 \subsection{Speculation in the final stages of K-Means}
+\label{section:final_stages}
 As the algorithm approaches convergence, the accuracy and effectiveness of the speculation carried out by the fast execution decreases, as shown in Figure \ref{fig:vanilla_speculation_comparison}. In the initial stages, the inertia of the centroids proposed by the fast execution is significantly smaller than the inertia of the centroids of the slow execution, but it becomes comparable in the next 3/4 stages. Additionally, as we approach convergence, the inertia of the fast execution's centroids is constantly greater than that of the slow execution.
 This is due to the fact that the last stages of K-Means before convergence need the entire datasets in order to compute the exact position of the centroids, and we are not able to do this by using a sample of it.
 This leads us to the question of what to do with the fast execution, and if we can improve its prediction even during the last stages before convergence.
